@@ -55,20 +55,31 @@ export async function createMediaAssetFromBuffer(opts: {
 
   const url = `/uploads/${safeName}`;
 
+  const assetType = opts.contentType.startsWith('image/')
+    ? 'image'
+    : opts.contentType.startsWith('video/')
+      ? 'video'
+      : 'document';
+
+  const rawOwnerId = (opts.ownerId || '').trim();
+  const normalizedOwnerId = rawOwnerId.length > 0 ? rawOwnerId : 'pending';
+  const projectId =
+    opts.ownerType === 'project' && rawOwnerId && rawOwnerId !== 'temp' ? rawOwnerId : null;
+
   const media = await prisma.mediaAsset.create({
     data: {
       url,
-      altEn: opts.altEn || null,
-      altAr: opts.altAr || null,
-      width: opts.width || 0,
-      height: opts.height || 0,
+      type: assetType,
+      altTextEn: opts.altEn || null,
+      altTextAr: opts.altAr || null,
+      width: typeof opts.width === 'number' ? opts.width : null,
+      height: typeof opts.height === 'number' ? opts.height : null,
       bytes: opts.buffer.length,
       contentType: opts.contentType,
       filename: safeName,
-      ownerType: opts.ownerType,
-      ownerId: opts.ownerId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      ownerType: opts.ownerType || 'unassigned',
+      ownerId: normalizedOwnerId,
+      projectId,
     },
   });
 
