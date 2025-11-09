@@ -19,14 +19,14 @@ export async function createCourse(data: CourseFormValues) {
   return prisma.course.create({
     data: {
       titleEn: parsed.titleEn,
-      titleAr: parsed.titleAr || '',
-      providerEn: parsed.providerEn || '',
-      providerAr: parsed.providerAr || '',
+      titleAr: parsed.titleAr || null,
+      providerEn: parsed.providerEn || null,
+      providerAr: parsed.providerAr || null,
       issuedOn: parsed.issuedOn,
       certificateUrl: parsed.certificateUrl || null,
       notesEn: parsed.notesEn || null,
       notesAr: parsed.notesAr || null,
-      displayOrder: parsed.displayOrder || 0,
+      displayOrder: parsed.displayOrder ?? 0,
       createdBy: session.user.email,
       updatedBy: session.user.email,
     },
@@ -38,14 +38,14 @@ export async function updateCourse(id: string, data: Partial<CourseFormValues>) 
   if (!session?.user) throw new Error('Unauthorized');
 
   const safeData: any = {};
-  if (data.titleEn) safeData.titleEn = data.titleEn;
-  if (data.titleAr) safeData.titleAr = data.titleAr;
-  if (data.providerEn) safeData.providerEn = data.providerEn;
-  if (data.providerAr) safeData.providerAr = data.providerAr;
-  if (data.issuedOn) safeData.issuedOn = data.issuedOn as any;
-  if (data.certificateUrl) safeData.certificateUrl = data.certificateUrl;
-  if (data.notesEn) safeData.notesEn = data.notesEn;
-  if (data.notesAr) safeData.notesAr = data.notesAr;
+  if (typeof data.titleEn !== 'undefined') safeData.titleEn = data.titleEn;
+  if (typeof data.titleAr !== 'undefined') safeData.titleAr = data.titleAr || null;
+  if (typeof data.providerEn !== 'undefined') safeData.providerEn = data.providerEn || null;
+  if (typeof data.providerAr !== 'undefined') safeData.providerAr = data.providerAr || null;
+  if (typeof data.issuedOn !== 'undefined') safeData.issuedOn = data.issuedOn as any;
+  if (typeof data.certificateUrl !== 'undefined') safeData.certificateUrl = data.certificateUrl || null;
+  if (typeof data.notesEn !== 'undefined') safeData.notesEn = data.notesEn || null;
+  if (typeof data.notesAr !== 'undefined') safeData.notesAr = data.notesAr || null;
   if (typeof data.displayOrder !== 'undefined') safeData.displayOrder = data.displayOrder;
 
   safeData.updatedBy = session.user.email;
