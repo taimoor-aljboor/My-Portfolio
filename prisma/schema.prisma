@@ -1,0 +1,309 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ProjectStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum MessageStatus {
+  NEW
+  READ
+  ARCHIVED
+}
+
+enum UserRole {
+  ADMIN
+}
+
+model Profile {
+  id              String @id @default(cuid())
+  fullNameEn      String
+  fullNameAr      String
+  headlineEn      String
+  headlineAr      String
+  bioEn           String // Rich text (JSON or HTML)
+  bioAr           String // Rich text (JSON or HTML)
+  email           String @unique
+  phone           String?
+  locationEn      String
+  locationAr      String
+  avatarUrl       String?
+  cvPdfUrl        String?
+  socialLinks     Json   // LinkedIn, X, Facebook, Instagram, YouTube, GitHub, WhatsApp, Other[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  createdBy       String?
+  updatedBy       String?
+}
+
+model Project {
+  id            String @id @default(cuid())
+  titleEn       String
+  titleAr       String
+  shortDescEn   String
+  shortDescAr   String
+  longDescEn    String // Rich text
+  longDescAr    String // Rich text
+  slugEn        String @unique
+  slugAr        String @unique
+  techStack     String[] // Array of technology tags
+  demoUrl       String?
+  repoUrl       String?
+  caseStudyUrl  String?
+  status        ProjectStatus @default(DRAFT)
+  featured      Boolean @default(false)
+  displayOrder  Int @default(0)
+  dateFrom      DateTime?
+  dateTo        DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  createdBy     String?
+  updatedBy     String?
+  deletedAt     DateTime?
+
+  images        MediaAsset[]
+  clients       ProjectClient[]
+
+  @@index([status, displayOrder])
+  @@index([featured])
+  @@index([slugEn])
+  @@index([slugAr])
+}
+
+model Education {
+  id            String @id @default(cuid())
+  institutionEn String
+  institutionAr String
+  degreeEn      String
+  degreeAr      String
+  fieldEn       String
+  fieldAr       String
+  startDate     DateTime
+  endDate       DateTime?
+  grade         String?
+  notesEn       String?
+  notesAr       String?
+  displayOrder  Int @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  createdBy     String?
+  updatedBy     String?
+  deletedAt     DateTime?
+
+  @@index([displayOrder])
+}
+
+model Achievement {
+  id            String @id @default(cuid())
+  titleEn       String
+  titleAr       String
+  descriptionEn String
+  descriptionAr String
+  issuedByEn    String
+  issuedByAr    String
+  achievedOn    DateTime
+  linkUrl       String?
+  logoUrl       String?
+  displayOrder  Int @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  createdBy     String?
+  updatedBy     String?
+  deletedAt     DateTime?
+
+  @@index([achievedOn])
+  @@index([displayOrder])
+}
+
+model Client {
+  id          String @id @default(cuid())
+  nameEn      String
+  nameAr      String
+  logoUrl     String?
+  websiteUrl  String?
+  testimonialEn String?
+  testimonialAr String?
+  displayOrder Int @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String?
+  updatedBy   String?
+  deletedAt   DateTime?
+
+  projects    ProjectClient[]
+
+  @@index([displayOrder])
+}
+
+model Course {
+  id            String @id @default(cuid())
+  titleEn       String
+  titleAr       String
+  providerEn    String
+  providerAr    String
+  issuedOn      DateTime
+  certificateUrl String?
+  notesEn       String?
+  notesAr       String?
+  displayOrder  Int @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  createdBy     String?
+  updatedBy     String?
+  deletedAt     DateTime?
+
+  @@index([issuedOn])
+  @@index([displayOrder])
+}
+
+model MediaAsset {
+  id            String @id @default(cuid())
+  url           String
+  altEn         String?
+  altAr         String?
+  width         Int
+  height        Int
+  bytes         Int
+  contentType   String
+  filename      String
+  ownerType     String // 'project', 'profile', etc.
+  ownerId       String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  project       Project? @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerType, ownerId])
+}
+
+model ContactMessage {
+  id          String @id @default(cuid())
+  name        String
+  email       String
+  phone       String?
+  message     String
+  language    String @default("en")
+  status      MessageStatus @default(NEW)
+  receivedAt  DateTime @default(now())
+  processedAt DateTime?
+
+  @@index([status])
+  @@index([receivedAt])
+}
+
+model User {
+  id            String @id @default(cuid())
+  email         String @unique
+  password      String // Hashed
+  name          String
+  role          UserRole @default(ADMIN)
+  lastLoginAt   DateTime?
+  loginAttempts Int @default(0)
+  lockedUntil   DateTime?
+  twoFactorEnabled Boolean @default(false)
+  twoFactorSecret String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+
+  @@index([email])
+}
+
+model Settings {
+  id                    String @id @default(cuid())
+  siteNameEn            String
+  siteNameAr            String
+  siteDescriptionEn     String
+  siteDescriptionAr     String
+  primaryColor          String @default("#3b82f6")
+  accentColor           String @default("#10b981")
+  defaultLanguage       String @default("en")
+  seoMetaTitleEn        String?
+  seoMetaTitleAr        String?
+  seoMetaDescriptionEn  String?
+  seoMetaDescriptionAr  String?
+  googleAnalyticsId     String?
+  emailRecipients       String[] // JSON array
+  smtpSettings          Json? // SMTP configuration
+  recaptchaSiteKey      String?
+  recaptchaSecretKey    String?
+  maintenanceMode       Boolean @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  updatedBy             String?
+}
+
+model AuditLog {
+  id          String @id @default(cuid())
+  userId      String
+  action      String // CREATE, UPDATE, DELETE
+  entityType  String
+  entityId    String
+  oldValues   Json?
+  newValues   Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+model ProjectClient {
+  projectId String
+  clientId  String
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  client  Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, clientId])
+}
+
+// NextAuth.js required models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
