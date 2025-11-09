@@ -23,6 +23,8 @@ async function main() {
       password: hashed,
       loginAttempts: 0,
       lockedUntil: null,
+      twoFactorEnabled: false,
+      twoFactorSecret: null,
     },
   });
 

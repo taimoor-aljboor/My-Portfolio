@@ -19,12 +19,12 @@ export async function createClient(data: ClientFormValues) {
   return prisma.client.create({
     data: {
       nameEn: parsed.nameEn,
-      nameAr: parsed.nameAr || '',
+      nameAr: parsed.nameAr || null,
       logoUrl: parsed.logoUrl || null,
       websiteUrl: parsed.websiteUrl || null,
       testimonialEn: parsed.testimonialEn || null,
       testimonialAr: parsed.testimonialAr || null,
-      displayOrder: parsed.displayOrder || 0,
+      displayOrder: parsed.displayOrder ?? 0,
       createdBy: session.user.email,
       updatedBy: session.user.email,
     },
@@ -36,12 +36,12 @@ export async function updateClient(id: string, data: Partial<ClientFormValues>) 
   if (!session?.user) throw new Error('Unauthorized');
 
   const safeData: any = {};
-  if (data.nameEn) safeData.nameEn = data.nameEn;
-  if (data.nameAr) safeData.nameAr = data.nameAr;
-  if (data.logoUrl) safeData.logoUrl = data.logoUrl;
-  if (data.websiteUrl) safeData.websiteUrl = data.websiteUrl;
-  if (data.testimonialEn) safeData.testimonialEn = data.testimonialEn;
-  if (data.testimonialAr) safeData.testimonialAr = data.testimonialAr;
+  if (typeof data.nameEn !== 'undefined') safeData.nameEn = data.nameEn;
+  if (typeof data.nameAr !== 'undefined') safeData.nameAr = data.nameAr || null;
+  if (typeof data.logoUrl !== 'undefined') safeData.logoUrl = data.logoUrl || null;
+  if (typeof data.websiteUrl !== 'undefined') safeData.websiteUrl = data.websiteUrl || null;
+  if (typeof data.testimonialEn !== 'undefined') safeData.testimonialEn = data.testimonialEn || null;
+  if (typeof data.testimonialAr !== 'undefined') safeData.testimonialAr = data.testimonialAr || null;
   if (typeof data.displayOrder !== 'undefined') safeData.displayOrder = data.displayOrder;
 
   safeData.updatedBy = session.user.email;

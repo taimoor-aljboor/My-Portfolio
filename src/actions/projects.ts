@@ -5,6 +5,14 @@ import prisma from "@/lib/db"
 import { revalidatePath } from "next/cache"
 import { ProjectStatus } from "@prisma/client"
 
+type ProjectImageInput = {
+  url: string
+  type: string
+  altTextEn?: string
+  altTextAr?: string
+  displayOrder: number
+}
+
 export type ProjectFormData = {
   titleEn: string
   titleAr: string
@@ -24,14 +32,18 @@ export type ProjectFormData = {
   dateFrom?: Date
   dateTo?: Date
   categoryId?: string
-  images: {
-    url: string
-    type: string
-    altTextEn?: string
-    altTextAr?: string
-    displayOrder: number
-  }[]
-  clients: string[] // Array of client IDs
+  images: ProjectImageInput[]
+  clientIds: string[]
+}
+
+function normalizeProject<T extends {
+  projectClients: Array<{ client: any }>
+}>(project: T) {
+  const { projectClients, ...rest } = project
+  return {
+    ...rest,
+    clients: projectClients.map((pc) => pc.client),
+  }
 }
 
 export async function createProject(data: ProjectFormData) {
@@ -40,26 +52,32 @@ export async function createProject(data: ProjectFormData) {
     throw new Error("Not authenticated")
   }
 
+  const { clientIds, images, ...projectData } = data
+
   const project = await prisma.project.create({
     data: {
-      ...data,
+      ...projectData,
       createdBy: session.user.email,
       updatedBy: session.user.email,
       images: {
-        create: data.images
+        create: images
       },
-      clients: {
-        connect: data.clients.map(id => ({ id }))
+      projectClients: {
+        create: clientIds.map((clientId) => ({
+          client: { connect: { id: clientId } }
+        }))
       }
     },
     include: {
       images: true,
-      clients: true
+      projectClients: {
+        include: { client: true }
+      }
     }
   })
 
   revalidatePath("/admin/projects")
-  return project
+  return normalizeProject(project)
 }
 
 export async function updateProject(id: string, data: ProjectFormData) {
@@ -68,31 +86,41 @@ export async function updateProject(id: string, data: ProjectFormData) {
     throw new Error("Not authenticated")
   }
 
+  const { clientIds, images, ...projectData } = data
+
   // Delete existing images and create new ones
   await prisma.mediaAsset.deleteMany({
+    where: { projectId: id }
+  })
+
+  await prisma.projectClient.deleteMany({
     where: { projectId: id }
   })
 
   const project = await prisma.project.update({
     where: { id },
     data: {
-      ...data,
+      ...projectData,
       updatedBy: session.user.email,
       images: {
-        create: data.images
+        create: images
       },
-      clients: {
-        set: data.clients.map(id => ({ id }))
+      projectClients: {
+        create: clientIds.map((clientId) => ({
+          client: { connect: { id: clientId } }
+        }))
       }
     },
     include: {
       images: true,
-      clients: true
+      projectClients: {
+        include: { client: true }
+      }
     }
   })
 
   revalidatePath("/admin/projects")
-  return project
+  return normalizeProject(project)
 }
 
 export async function deleteProject(id: string) {
@@ -114,20 +142,24 @@ export async function deleteProject(id: string) {
 }
 
 export async function getProject(id: string) {
-  return await prisma.project.findUnique({
+  const project = await prisma.project.findUnique({
     where: { id },
     include: {
       images: {
         orderBy: { displayOrder: "asc" }
       },
-      clients: true,
+      projectClients: {
+        include: { client: true }
+      },
       category: true
     }
   })
+  if (!project) return null
+  return normalizeProject(project)
 }
 
 export async function getProjects(includeDeleted = false) {
-  return await prisma.project.findMany({
+  const projects = await prisma.project.findMany({
     where: includeDeleted ? {} : { deletedAt: null },
     orderBy: [
       { featured: "desc" },
@@ -139,9 +171,13 @@ export async function getProjects(includeDeleted = false) {
         orderBy: { displayOrder: "asc" },
         take: 1 // Get just the first image for preview
       },
+      projectClients: {
+        include: { client: true }
+      },
       category: true
     }
   })
+  return projects.map(normalizeProject)
 }
 
 export async function updateProjectStatus(id: string, status: ProjectStatus) {

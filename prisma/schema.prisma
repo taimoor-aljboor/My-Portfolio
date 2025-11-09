@@ -33,13 +33,21 @@ enum ExperienceType {
 
 // User & Authentication
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  name      String?
-  role      String   @default("ADMIN")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               String   @id @default(cuid())
+  email            String   @unique
+  password         String
+  name             String?
+  role             String   @default("ADMIN")
+  lastLoginAt      DateTime?
+  loginAttempts    Int      @default(0)
+  lockedUntil      DateTime?
+  twoFactorEnabled Boolean  @default(false)
+  twoFactorSecret  String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  accounts Account[]
+  sessions Session[]
 }
 
 // Profile Information
@@ -91,9 +99,9 @@ model Project {
   deletedAt     DateTime?
 
   // Relations
-  images        MediaAsset[]
-  clients       ProjectClient[]
-  testimonials  Testimonial[]
+  images          MediaAsset[]
+  projectClients  ProjectClient[]
+  testimonials    Testimonial[]
   category      ProjectCategory? @relation(fields: [categoryId], references: [id])
   categoryId    String?
 
@@ -101,6 +109,16 @@ model Project {
   @@index([featured])
   @@index([slugEn])
   @@index([slugAr])
+}
+
+model ProjectClient {
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+  client    Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId  String
+  createdAt DateTime @default(now())
+
+  @@id([projectId, clientId])
 }
 
 model ProjectCategory {
@@ -117,15 +135,24 @@ model ProjectCategory {
   @@index([displayOrder])
 }
 
-model ProjectClient {
-  id        String   @id @default(cuid())
-  nameEn    String
-  nameAr    String
-  website   String?
-  logoUrl   String?
-  projects  Project[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Client {
+  id             String   @id @default(cuid())
+  nameEn         String
+  nameAr         String?
+  logoUrl        String?
+  websiteUrl     String?
+  testimonialEn  String?
+  testimonialAr  String?
+  displayOrder   Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  createdBy      String?
+  updatedBy      String?
+  deletedAt      DateTime?
+
+  projectClients ProjectClient[]
+
+  @@index([displayOrder])
 }
 
 // Experience & Education
@@ -173,6 +200,27 @@ model Education {
   @@index([displayOrder])
 }
 
+model Course {
+  id             String   @id @default(cuid())
+  titleEn        String
+  titleAr        String?
+  providerEn     String?
+  providerAr     String?
+  issuedOn       DateTime
+  certificateUrl String?
+  notesEn        String?
+  notesAr        String?
+  displayOrder   Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  createdBy      String?
+  updatedBy      String?
+  deletedAt      DateTime?
+
+  @@index([issuedOn])
+  @@index([displayOrder])
+}
+
 // Skills & Certifications
 model Skill {
   id           String   @id @default(cuid())
@@ -202,6 +250,28 @@ model Certification {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  @@index([displayOrder])
+}
+
+model Achievement {
+  id            String   @id @default(cuid())
+  titleEn       String
+  titleAr       String?
+  descriptionEn String?
+  descriptionAr String?
+  issuedByEn    String?
+  issuedByAr    String?
+  achievedOn    DateTime
+  linkUrl       String?
+  logoUrl       String?
+  displayOrder  Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  createdBy     String?
+  updatedBy     String?
+  deletedAt     DateTime?
+
+  @@index([achievedOn])
   @@index([displayOrder])
 }
 
@@ -256,4 +326,80 @@ model MediaAsset {
 
   @@index([type])
   @@index([displayOrder])
-} 
+}
+
+model Settings {
+  id                    String   @id @default(cuid())
+  siteNameEn            String
+  siteNameAr            String
+  siteDescriptionEn     String?
+  siteDescriptionAr     String?
+  primaryColor          String   @default("#3b82f6")
+  accentColor           String   @default("#10b981")
+  defaultLanguage       String   @default("en")
+  seoMetaTitleEn        String?
+  seoMetaTitleAr        String?
+  seoMetaDescriptionEn  String?
+  seoMetaDescriptionAr  String?
+  googleAnalyticsId     String?
+  emailRecipients       String[]
+  smtpSettings          Json?
+  recaptchaSiteKey      String?
+  recaptchaSecretKey    String?
+  maintenanceMode       Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  updatedBy             String?
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String
+  action     String
+  entityType String
+  entityId   String
+  oldValues  Json?
+  newValues  Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+model Account {
+  id                String @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
