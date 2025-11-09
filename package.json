@@ -2,6 +2,9 @@
   "name": "my-portfolio",
   "version": "0.1.0",
   "private": true,
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -15,16 +18,33 @@
     "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "next": "14.2.15",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "next-intl": "^3.25.0",
-    "@radix-ui/react-slot": "^1.1.0",
+    "@editorjs/editorjs": "^2.31.0",
+    "@hookform/resolvers": "^5.2.2",
+    "@prisma/client": "^6.19.0",
+    "@radix-ui/react-avatar": "^1.1.11",
+    "@radix-ui/react-dropdown-menu": "^2.1.16",
+    "@radix-ui/react-label": "^2.1.8",
+    "@radix-ui/react-slot": "^1.2.4",
+    "@tiptap/extension-placeholder": "^3.10.4",
+    "@tiptap/pm": "^3.10.4",
+    "@tiptap/react": "^3.10.4",
+    "@tiptap/starter-kit": "^3.10.4",
+    "@types/bcrypt": "^6.0.0",
+    "bcrypt": "^6.0.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
-    "tailwind-merge": "^2.5.4",
+    "lucide-react": "^0.553.0",
+    "next": "14.2.15",
+    "next-auth": "^5.0.0-beta.30",
+    "next-intl": "^3.25.0",
     "next-themes": "^0.4.3",
-    "tailwindcss-animate": "^1.0.7"
+    "prisma": "^6.19.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.66.0",
+    "tailwind-merge": "^2.5.4",
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@types/node": "^20.17.6",
@@ -35,8 +55,7 @@
     "eslint-config-next": "14.2.15",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.15",
-    "typescript": "^5.6.3",
-    "@prisma/client": "^5.22.0",
-    "prisma": "^5.22.0"
+    "tsx": "^4.20.6",
+    "typescript": "^5.6.3"
   }
 }

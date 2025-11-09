@@ -7,7 +7,17 @@
     "education": "Education",
     "courses": "Courses",
     "clients": "Clients",
-    "contact": "Contact"
+    "contact": "Contact",
+    "navigation": "Navigation"
+  },
+  "footer": {
+    "resources": "Resources",
+    "downloadCV": "Download CV",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "contact": "Contact Info",
+    "preferences": "Preferences",
+    "copyright": "© {{year}} {{name}}. All rights reserved."
   },
   "common": {
     "loading": "Loading...",
@@ -15,6 +25,10 @@
     "success": "Success",
     "cancel": "Cancel",
     "save": "Save",
+    "toggleTheme": "Toggle theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
     "edit": "Edit",
     "delete": "Delete",
     "view": "View",
@@ -121,11 +135,31 @@
       "whatsapp": "WhatsApp"
     }
   },
-  "footer": {
-    "copyright": "© {{year}} {{name}}. All rights reserved.",
-    "links": {
-      "privacy": "Privacy Policy",
-      "terms": "Terms of Service"
+
+  "admin": {
+    "nav": {
+      "dashboard": "Dashboard",
+      "profile": "Profile",
+      "projects": "Projects",
+      "education": "Education",
+      "experience": "Experience",
+      "settings": "Settings",
+      "viewSite": "View Site",
+      "signOut": "Sign Out"
+    },
+    "profile": {
+      "englishContent": "English Content",
+      "arabicContent": "Arabic Content",
+      "fullName": "Full Name",
+      "headline": "Professional Headline",
+      "bio": "Biography",
+      "location": "Location",
+      "contactInfo": "Contact Information",
+      "email": "Email Address",
+      "phone": "Phone Number",
+      "avatarUrl": "Avatar URL",
+      "cvPdfUrl": "CV PDF URL",
+      "socialLinks": "Social Media Links"
     }
   },
   "seo": {

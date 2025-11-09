@@ -7,7 +7,8 @@
     "education": "التعليم",
     "courses": "الدورات",
     "clients": "العملاء",
-    "contact": "التواصل"
+    "contact": "التواصل",
+    "navigation": "التنقل"
   },
   "common": {
     "loading": "جاري التحميل...",
@@ -15,6 +16,10 @@
     "success": "نجح",
     "cancel": "إلغاء",
     "save": "حفظ",
+    "toggleTheme": "تبديل المظهر",
+    "light": "فاتح",
+    "dark": "داكن",
+    "system": "النظام",
     "edit": "تعديل",
     "delete": "حذف",
     "view": "عرض",
@@ -121,11 +126,31 @@
       "whatsapp": "واتساب"
     }
   },
-  "footer": {
-    "copyright": "© {{year}} {{name}}. جميع الحقوق محفوظة.",
-    "links": {
-      "privacy": "سياسة الخصوصية",
-      "terms": "شروط الخدمة"
+
+  "admin": {
+    "nav": {
+      "dashboard": "لوحة التحكم",
+      "profile": "الملف الشخصي",
+      "projects": "المشاريع",
+      "education": "التعليم",
+      "experience": "الخبرات",
+      "settings": "الإعدادات",
+      "viewSite": "عرض الموقع",
+      "signOut": "تسجيل الخروج"
+    },
+    "profile": {
+      "englishContent": "المحتوى بالإنجليزية",
+      "arabicContent": "المحتوى بالعربية",
+      "fullName": "الاسم الكامل",
+      "headline": "العنوان المهني",
+      "bio": "السيرة الذاتية",
+      "location": "الموقع",
+      "contactInfo": "معلومات التواصل",
+      "email": "البريد الإلكتروني",
+      "phone": "رقم الهاتف",
+      "avatarUrl": "رابط الصورة الشخصية",
+      "cvPdfUrl": "رابط السيرة الذاتية PDF",
+      "socialLinks": "روابط التواصل الاجتماعي"
     }
   },
   "seo": {

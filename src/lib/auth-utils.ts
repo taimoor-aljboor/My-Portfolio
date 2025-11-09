@@ -1,0 +1,71 @@
+import { compare, hash } from 'bcrypt';
+
+const SALT_ROUNDS = 10;
+
+/**
+ * Hash a password using bcrypt
+ */
+export async function hashPassword(password: string): Promise<string> {
+  return hash(password, SALT_ROUNDS);
+}
+
+/**
+ * Compare a password with its hash
+ */
+export async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
+  return compare(password, hashedPassword);
+}
+
+/**
+ * Validate password strength
+ */
+export function validatePassword(password: string): {
+  isValid: boolean;
+  errors: string[];
+} {
+  const errors: string[] = [];
+  
+  if (password.length < 8) {
+    errors.push('Password must be at least 8 characters long');
+  }
+  
+  if (!/[A-Z]/.test(password)) {
+    errors.push('Password must contain at least one uppercase letter');
+  }
+  
+  if (!/[a-z]/.test(password)) {
+    errors.push('Password must contain at least one lowercase letter');
+  }
+  
+  if (!/[0-9]/.test(password)) {
+    errors.push('Password must contain at least one number');
+  }
+  
+  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+    errors.push('Password must contain at least one special character');
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors,
+  };
+}
+
+/**
+ * Check if account is locked
+ */
+export function isAccountLocked(attempts: number, lockedUntil: Date | null): boolean {
+  if (!lockedUntil) return false;
+  if (attempts >= 5 && lockedUntil > new Date()) return true;
+  return false;
+}
+
+/**
+ * Calculate lock duration based on attempts
+ */
+export function calculateLockDuration(attempts: number): number {
+  // Base duration is 15 minutes
+  const baseDuration = 15 * 60 * 1000;
+  // Double duration for each additional attempt beyond 5
+  return attempts <= 5 ? baseDuration : baseDuration * Math.pow(2, attempts - 5);
+}
