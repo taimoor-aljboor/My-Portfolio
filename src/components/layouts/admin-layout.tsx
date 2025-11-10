@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Command, Grid, Settings, Users } from 'lucide-react';
+import { Building2, Command, GraduationCap, Grid, Image as ImageIcon, MessageSquare, Settings, UserCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -22,7 +22,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
     },
     {
       href: '/admin/profile',
-      icon: Users,
+      icon: UserCircle,
       label: t('admin.nav.profile'),
     },
     {
@@ -31,11 +31,33 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       label: t('admin.nav.projects'),
     },
     {
+      href: '/admin/clients',
+      icon: Building2,
+      label: t('admin.nav.clients'),
+    },
+    {
+      href: '/admin/courses',
+      icon: GraduationCap,
+      label: t('admin.nav.courses'),
+    },
+    {
+      href: '/admin/messages',
+      icon: MessageSquare,
+      label: t('admin.nav.messages'),
+    },
+    {
+      href: '/admin/media',
+      icon: ImageIcon,
+      label: t('admin.nav.media'),
+    },
+    {
       href: '/admin/settings',
       icon: Settings,
       label: t('admin.nav.settings'),
     },
   ];
+
+  const activeNavItem = navItems.find(({ href }) => pathname === href || pathname.startsWith(`${href}/`));
 
   return (
     <div className="grid min-h-screen grid-cols-1 md:grid-cols-[240px_1fr]">
@@ -56,7 +78,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                   variant="ghost"
                   className={cn(
                     'w-full justify-start gap-2',
-                    pathname === href && 'bg-muted'
+                    (pathname === href || pathname.startsWith(`${href}/`)) && 'bg-muted'
                   )}
                 >
                   <Link href={href}>
@@ -74,7 +96,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       <main className="flex flex-col">
         <header className="h-16 border-b px-6">
           <div className="flex h-full items-center justify-between">
-            <h1 className="text-lg font-semibold">{t(`admin.nav.${pathname.split('/').pop() || 'dashboard'}`)}</h1>
+            <h1 className="text-lg font-semibold">{activeNavItem?.label ?? t('admin.nav.dashboard')}</h1>
             <div className="flex items-center gap-4">
               <ThemeToggle />
               <LanguageSwitcher />

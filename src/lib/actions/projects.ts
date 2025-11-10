@@ -1,7 +1,7 @@
+import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { type ProjectFormValues, projectSchema } from '@/lib/validations/project';
-import { z } from 'zod';
 
 function slugify(input: string) {
   return input
@@ -12,10 +12,23 @@ function slugify(input: string) {
     .slice(0, 200);
 }
 
+function revalidateProjectPaths() {
+  revalidatePath('/admin');
+  revalidatePath('/admin/projects');
+  revalidatePath('/en');
+  revalidatePath('/ar');
+  revalidatePath('/en/projects');
+  revalidatePath('/ar/projects');
+}
+
 export async function listProjects() {
   return prisma.project.findMany({
     where: { deletedAt: null },
-    orderBy: [{ featured: 'desc' }, { displayOrder: 'asc' }, { createdAt: 'desc' }],
+    orderBy: [
+      { featured: 'desc' },
+      { displayOrder: 'asc' },
+      { createdAt: 'desc' },
+    ],
   });
 }
 
@@ -33,7 +46,7 @@ export async function createProject(data: ProjectFormValues) {
   const slugEn = parsed.titleEn ? slugify(parsed.titleEn) : undefined;
   const slugAr = parsed.titleAr ? slugify(parsed.titleAr) : undefined;
 
-  return prisma.project.create({
+  const project = await prisma.project.create({
     data: {
       titleEn: parsed.titleEn,
       titleAr: parsed.titleAr || '',
@@ -43,15 +56,19 @@ export async function createProject(data: ProjectFormValues) {
       longDescAr: parsed.descriptionAr || '',
       slugEn: slugEn || parsed.titleEn,
       slugAr: slugAr || parsed.titleAr || parsed.titleEn,
-      techStack: parsed.techs || [],
-      demoUrl: parsed.url || null,
-      repoUrl: parsed.repoUrl || null,
+      techStack: parsed.techs?.filter(Boolean) || [],
+      demoUrl: parsed.url ? parsed.url : null,
+      repoUrl: parsed.repoUrl ? parsed.repoUrl : null,
       featured: parsed.featured || false,
       displayOrder: 0,
       createdBy: session.user.email,
       updatedBy: session.user.email,
     },
   });
+
+  revalidateProjectPaths();
+
+  return project;
 }
 
 export async function updateProject(id: string, data: Partial<ProjectFormValues>) {
@@ -60,32 +77,51 @@ export async function updateProject(id: string, data: Partial<ProjectFormValues>
 
   // allow partial updates; only validate fields that exist
   const safeData: any = {};
-  if (data.titleEn) safeData.titleEn = data.titleEn;
-  if (data.titleAr) safeData.titleAr = data.titleAr;
-  if (data.descriptionEn) {
-    safeData.shortDescEn = data.descriptionEn;
-    safeData.longDescEn = data.descriptionEn;
+  if (typeof data.titleEn !== 'undefined') {
+    safeData.titleEn = data.titleEn;
+    safeData.slugEn = slugify(data.titleEn);
   }
-  if (data.descriptionAr) {
-    safeData.shortDescAr = data.descriptionAr;
-    safeData.longDescAr = data.descriptionAr;
+  if (typeof data.titleAr !== 'undefined') {
+    safeData.titleAr = data.titleAr || '';
+    if (data.titleAr) {
+      safeData.slugAr = slugify(data.titleAr);
+    }
   }
-  if (data.url) safeData.demoUrl = data.url;
-  if (data.repoUrl) safeData.repoUrl = data.repoUrl;
-  if (data.techs) safeData.techStack = data.techs;
+  if (typeof data.descriptionEn !== 'undefined') {
+    safeData.shortDescEn = data.descriptionEn || '';
+    safeData.longDescEn = data.descriptionEn || '';
+  }
+  if (typeof data.descriptionAr !== 'undefined') {
+    safeData.shortDescAr = data.descriptionAr || '';
+    safeData.longDescAr = data.descriptionAr || '';
+  }
+  if (typeof data.url !== 'undefined') safeData.demoUrl = data.url || null;
+  if (typeof data.repoUrl !== 'undefined') safeData.repoUrl = data.repoUrl || null;
+  if (typeof data.techs !== 'undefined') safeData.techStack = data.techs?.filter(Boolean) || [];
   if (typeof data.featured === 'boolean') safeData.featured = data.featured;
-  if (data.imageUrl) {
+  if (typeof data.imageUrl !== 'undefined') {
     // create a MediaAsset or store URL in images? For now set a placeholder
   }
 
   safeData.updatedBy = session.user.email;
 
-  return prisma.project.update({ where: { id }, data: safeData });
+  const project = await prisma.project.update({ where: { id }, data: safeData });
+
+  revalidateProjectPaths();
+
+  return project;
 }
 
 export async function softDeleteProject(id: string) {
   const session = await auth();
   if (!session?.user) throw new Error('Unauthorized');
 
-  return prisma.project.update({ where: { id }, data: { deletedAt: new Date(), updatedBy: session.user.email } });
+  const project = await prisma.project.update({
+    where: { id },
+    data: { deletedAt: new Date(), updatedBy: session.user.email },
+  });
+
+  revalidateProjectPaths();
+
+  return project;
 }

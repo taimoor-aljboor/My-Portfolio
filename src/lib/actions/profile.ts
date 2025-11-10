@@ -1,6 +1,14 @@
-import prisma from '@/lib/db';
+import { revalidatePath } from 'next/cache';
 import { auth } from '@/lib/auth';
-import { type ProfileFormValues } from '@/lib/validations/profile';
+import { profileFormSchema, type ProfileFormValues } from '@/lib/validations/profile';
+import { profileRepository } from '@/repositories/profile';
+
+function normalizeOptional(value?: string | null) {
+  if (typeof value === 'string' && value.trim().length === 0) {
+    return null;
+  }
+  return typeof value === 'undefined' ? null : value;
+}
 
 export async function updateProfile(data: ProfileFormValues) {
   const session = await auth();
@@ -9,25 +17,30 @@ export async function updateProfile(data: ProfileFormValues) {
     throw new Error('Unauthorized');
   }
 
-  const profile = await prisma.profile.findFirst();
+  const parsed = profileFormSchema.parse(data);
 
-  if (profile) {
-    // Update existing profile
-    return prisma.profile.update({
-      where: { id: profile.id },
-      data: {
-        ...data,
-        updatedBy: session.user.email,
-      },
-    });
-  }
+  const payload = {
+    fullNameEn: parsed.fullNameEn,
+    fullNameAr: parsed.fullNameAr,
+    headlineEn: parsed.headlineEn,
+    headlineAr: parsed.headlineAr,
+    bioEn: parsed.bioEn,
+    bioAr: parsed.bioAr,
+    email: parsed.email,
+    phone: normalizeOptional(parsed.phone),
+    locationEn: parsed.locationEn,
+    locationAr: parsed.locationAr,
+    avatarUrl: normalizeOptional(parsed.avatarUrl),
+    cvPdfUrl: normalizeOptional(parsed.cvPdfUrl),
+    socialLinks: parsed.socialLinks as any,
+  };
 
-  // Create new profile
-  return prisma.profile.create({
-    data: {
-      ...data,
-      createdBy: session.user.email,
-      updatedBy: session.user.email,
-    },
-  });
+  const profile = await profileRepository.upsertProfile(payload, session.user.id);
+
+  revalidatePath('/admin/profile');
+  revalidatePath('/');
+  revalidatePath('/en');
+  revalidatePath('/ar');
+
+  return profile;
 }

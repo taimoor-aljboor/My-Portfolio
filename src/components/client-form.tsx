@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { clientSchema, type ClientFormValues } from '@/lib/validations/client';
@@ -143,7 +144,7 @@ export function ClientForm({ initialData, onSubmit }: ClientFormProps) {
             />
             {isUploading && <span>Uploading...</span>}
             {logoUrl && (
-              <img src={logoUrl} alt="logo" className="h-12 w-12 object-cover" />
+              <Image src={logoUrl} alt="Client logo" width={48} height={48} className="h-12 w-12 rounded-md object-cover" />
             )}
           </div>
         </div>

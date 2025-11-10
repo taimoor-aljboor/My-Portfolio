@@ -54,10 +54,14 @@
     },
     "featuredProjects": {
       "title": "Featured Projects",
-      "viewAll": "View All Projects"
+      "viewAll": "View All Projects",
+      "empty": "Content coming soon."
     },
     "clients": {
-      "title": "Trusted by"
+      "title": "Trusted by",
+      "subtitle": "Organisations and partners I have collaborated with.",
+      "visit": "Visit website",
+      "empty": "Client stories coming soon."
     },
     "stats": {
       "projects": "Projects Completed",
@@ -66,7 +70,10 @@
       "technologies": "Technologies Mastered"
     },
     "achievements": {
-      "title": "Recent Achievements"
+      "title": "Recent Achievements",
+      "subtitle": "Highlights of certifications, awards, and accomplishments.",
+      "learnMore": "Learn more",
+      "empty": "Achievements will be added soon."
     },
     "cta": {
       "title": "Ready to work together?",
@@ -83,10 +90,18 @@
       "title": "Skills & Technologies"
     },
     "education": {
-      "title": "Education"
+      "title": "Education",
+      "subtitle": "Academic background and milestones.",
+      "empty": "Education entries coming soon."
     },
     "courses": {
-      "title": "Courses & Certifications"
+      "title": "Courses & Certifications",
+      "subtitle": "Continuous learning and certifications.",
+      "viewCertificate": "View certificate",
+      "empty": "Courses will appear here soon."
+    },
+    "bio": {
+      "title": "Professional Experience"
     },
     "downloadCV": "Download CV"
   },
@@ -95,9 +110,14 @@
     "filters": {
       "all": "All Projects",
       "featured": "Featured",
-      "technology": "Technology"
+      "technology": "Technology",
+      "searchLabel": "Search projects",
+      "searchPlaceholder": "Search by title or description",
+      "featuredLabel": "Show featured only",
+      "reset": "Reset filters"
     },
     "sort": {
+      "label": "Sort by",
       "recent": "Most Recent",
       "oldest": "Oldest First",
       "name": "By Name"
@@ -108,17 +128,23 @@
       "caseStudy": "Case Study",
       "technologies": "Technologies",
       "client": "Client",
-      "related": "Related Projects"
+      "related": "Related Projects",
+      "category": "Project",
+      "links": "Project links",
+      "view": "View project",
+      "empty": "More case studies coming soon."
     }
   },
   "contact": {
     "title": "Get In Touch",
+    "intro": "Feel free to reach out for collaborations or just a friendly hello.",
     "form": {
       "name": "Name",
       "email": "Email",
       "phone": "Phone (Optional)",
       "message": "Message",
       "submit": "Send Message",
+      "submitting": "Sending...",
       "success": "Message sent successfully!",
       "error": "Failed to send message. Please try again.",
       "validations": {
@@ -130,9 +156,11 @@
       }
     },
     "info": {
+      "title": "Contact information",
       "email": "Email",
       "phone": "Phone",
-      "whatsapp": "WhatsApp"
+      "whatsapp": "WhatsApp",
+      "response": "Messages are delivered to the configured inbox instantly."
     }
   },
 
@@ -143,6 +171,10 @@
       "projects": "Projects",
       "education": "Education",
       "experience": "Experience",
+      "clients": "Clients",
+      "courses": "Courses",
+      "messages": "Messages",
+      "media": "Media",
       "settings": "Settings",
       "viewSite": "View Site",
       "signOut": "Sign Out"
@@ -178,6 +210,22 @@
     "projects": {
       "title": "Projects - {{name}}'s Portfolio",
       "description": "Browse through my portfolio of projects, including web development, design, and more."
+    },
+    "achievements": {
+      "title": "Achievements - {{name}}",
+      "description": "Highlights of certifications, awards, and notable accomplishments."
+    },
+    "education": {
+      "title": "Education - {{name}}",
+      "description": "Academic background, institutions, and key milestones."
+    },
+    "courses": {
+      "title": "Courses - {{name}}",
+      "description": "Professional courses and certifications completed by {{name}}."
+    },
+    "clients": {
+      "title": "Clients - {{name}}",
+      "description": "Brands and organisations who have partnered with {{name}}."
     },
     "contact": {
       "title": "Contact - {{name}}",

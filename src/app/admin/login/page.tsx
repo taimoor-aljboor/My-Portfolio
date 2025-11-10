@@ -68,7 +68,7 @@ export default function LoginPage({
         <div className="relative z-20 mt-auto">
           <blockquote className="space-y-2">
             <p className="text-lg">
-              "Welcome to your portfolio management dashboard."
+              &ldquo;Welcome to your portfolio management dashboard.&rdquo;
             </p>
           </blockquote>
         </div>

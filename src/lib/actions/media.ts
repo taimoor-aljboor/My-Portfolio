@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/db';
 import { auth } from '@/lib/auth';
 
@@ -84,4 +85,39 @@ export async function createMediaAssetFromBuffer(opts: {
   });
 
   return media;
+}
+
+function revalidateMediaPaths() {
+  revalidatePath('/admin/media');
+}
+
+export async function listMediaAssets() {
+  const session = await auth();
+  if (!session?.user) throw new Error('Unauthorized');
+
+  return prisma.mediaAsset.findMany({
+    orderBy: [{ createdAt: 'desc' }],
+  });
+}
+
+export async function deleteMediaAsset(id: string) {
+  const session = await auth();
+  if (!session?.user) throw new Error('Unauthorized');
+
+  const asset = await prisma.mediaAsset.delete({ where: { id } });
+
+  if (asset.filename) {
+    const filePath = path.join(process.cwd(), 'public', asset.url.replace(/^\//, ''));
+    if (fs.existsSync(filePath)) {
+      try {
+        fs.unlinkSync(filePath);
+      } catch (error) {
+        console.error('Failed to remove media file from disk', error);
+      }
+    }
+  }
+
+  revalidateMediaPaths();
+
+  return asset;
 }
