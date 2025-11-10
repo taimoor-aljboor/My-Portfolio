@@ -1,6 +1,16 @@
+import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { clientSchema, type ClientFormValues } from '@/lib/validations/client';
+
+function revalidateClientPaths() {
+  revalidatePath('/admin/clients');
+  revalidatePath('/admin');
+  revalidatePath('/en');
+  revalidatePath('/ar');
+  revalidatePath('/en/clients');
+  revalidatePath('/ar/clients');
+}
 
 export async function listClients() {
   return prisma.client.findMany({ where: { deletedAt: null }, orderBy: { displayOrder: 'asc' } });
@@ -16,7 +26,7 @@ export async function createClient(data: ClientFormValues) {
 
   const parsed = clientSchema.parse(data as any);
 
-  return prisma.client.create({
+  const client = await prisma.client.create({
     data: {
       nameEn: parsed.nameEn,
       nameAr: parsed.nameAr || null,
@@ -29,6 +39,10 @@ export async function createClient(data: ClientFormValues) {
       updatedBy: session.user.email,
     },
   });
+
+  revalidateClientPaths();
+
+  return client;
 }
 
 export async function updateClient(id: string, data: Partial<ClientFormValues>) {
@@ -46,12 +60,23 @@ export async function updateClient(id: string, data: Partial<ClientFormValues>) 
 
   safeData.updatedBy = session.user.email;
 
-  return prisma.client.update({ where: { id }, data: safeData });
+  const client = await prisma.client.update({ where: { id }, data: safeData });
+
+  revalidateClientPaths();
+
+  return client;
 }
 
 export async function softDeleteClient(id: string) {
   const session = await auth();
   if (!session?.user) throw new Error('Unauthorized');
 
-  return prisma.client.update({ where: { id }, data: { deletedAt: new Date(), updatedBy: session.user.email } });
+  const client = await prisma.client.update({
+    where: { id },
+    data: { deletedAt: new Date(), updatedBy: session.user.email },
+  });
+
+  revalidateClientPaths();
+
+  return client;
 }

@@ -1,3 +1,4 @@
+import Image from "next/image"
 import { signOut } from "@/auth"
 import {
   DropdownMenu,
@@ -26,10 +27,12 @@ export function UserNav({ user }: UserNavProps) {
           className="relative h-8 w-8 rounded-full"
         >
           {user.image ? (
-            <img
+            <Image
               src={user.image}
               alt={user.name || "User avatar"}
-              className="h-8 w-8 rounded-full"
+              width={32}
+              height={32}
+              className="h-8 w-8 rounded-full object-cover"
             />
           ) : (
             <User2 className="h-4 w-4" />

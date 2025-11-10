@@ -23,6 +23,10 @@ enum MessageStatus {
   ARCHIVED
 }
 
+enum UserRole {
+  ADMIN
+}
+
 enum ExperienceType {
   FULL_TIME
   PART_TIME
@@ -37,7 +41,7 @@ model User {
   email            String    @unique
   password         String
   name             String?
-  role             String    @default("ADMIN")
+  role             UserRole  @default(ADMIN)
   lastLoginAt      DateTime?
   loginAttempts    Int       @default(0)
   lockedUntil      DateTime?
@@ -277,14 +281,21 @@ model Achievement {
 
 // Contact & Testimonials
 model Message {
-  id        String        @id @default(cuid())
-  name      String
-  email     String
-  subject   String
-  message   String
-  status    MessageStatus @default(NEW)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  id          String        @id @default(cuid())
+  name        String
+  email       String
+  phone       String?
+  subject     String?
+  message     String
+  language    String        @default("en")
+  status      MessageStatus @default(NEW)
+  receivedAt  DateTime      @default(now())
+  processedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([status])
+  @@index([receivedAt])
 }
 
 model Testimonial {

@@ -1,4 +1,4 @@
-import { PrismaClient, ProjectStatus } from '@prisma/client';
+import { Prisma, PrismaClient, ProjectStatus, MessageStatus } from '@prisma/client';
 import { hash } from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -43,11 +43,12 @@ async function main() {
       locationAr: 'عن بعد · حول العالم',
       avatarUrl: 'https://avatars.githubusercontent.com/u/000000?v=4',
       cvPdfUrl: null,
-      socialLinks: [
-        { label: 'LinkedIn', url: 'https://linkedin.com/in/johndoe' },
-        { label: 'GitHub', url: 'https://github.com/johndoe' },
-        { label: 'YouTube', url: 'https://youtube.com/@johndoe' },
-      ],
+      socialLinks: {
+        linkedin: 'https://linkedin.com/in/johndoe',
+        github: 'https://github.com/johndoe',
+        youtube: 'https://youtube.com/@johndoe',
+        other: [],
+      },
       updatedBy: adminEmail,
     },
     create: {
@@ -65,18 +66,19 @@ async function main() {
       locationAr: 'عن بعد · حول العالم',
       avatarUrl: 'https://avatars.githubusercontent.com/u/000000?v=4',
       cvPdfUrl: null,
-      socialLinks: [
-        { label: 'LinkedIn', url: 'https://linkedin.com/in/johndoe' },
-        { label: 'GitHub', url: 'https://github.com/johndoe' },
-        { label: 'YouTube', url: 'https://youtube.com/@johndoe' },
-      ],
+      socialLinks: {
+        linkedin: 'https://linkedin.com/in/johndoe',
+        github: 'https://github.com/johndoe',
+        youtube: 'https://youtube.com/@johndoe',
+        other: [],
+      },
       createdBy: adminEmail,
       updatedBy: adminEmail,
     },
   });
 
   const settings = await prisma.settings.upsert({
-    where: { id: 'default-settings' },
+    where: { id: 'singleton-settings' },
     update: {
       siteNameEn: 'John Doe Portfolio',
       siteNameAr: 'ملف جون دو',
@@ -91,14 +93,14 @@ async function main() {
       seoMetaDescriptionAr: 'نماذج أعمال ودراسات حالة وطرق للتعاون.',
       googleAnalyticsId: 'G-XXXXXXX',
       emailRecipients: [adminEmail],
-      smtpSettings: null,
+      smtpSettings: Prisma.JsonNull,
       recaptchaSiteKey: null,
       recaptchaSecretKey: null,
       maintenanceMode: false,
       updatedBy: adminEmail,
     },
     create: {
-      id: 'default-settings',
+      id: 'singleton-settings',
       siteNameEn: 'John Doe Portfolio',
       siteNameAr: 'ملف جون دو',
       siteDescriptionEn: 'A modern portfolio showcasing full-stack craftsmanship.',
@@ -112,7 +114,7 @@ async function main() {
       seoMetaDescriptionAr: 'نماذج أعمال ودراسات حالة وطرق للتعاون.',
       googleAnalyticsId: 'G-XXXXXXX',
       emailRecipients: [adminEmail],
-      smtpSettings: null,
+      smtpSettings: Prisma.JsonNull,
       recaptchaSiteKey: null,
       recaptchaSecretKey: null,
       maintenanceMode: false,
@@ -356,6 +358,33 @@ async function main() {
       entityType: 'SYSTEM',
       entityId: 'initial-seed',
       newValues: { seededAt: new Date().toISOString() },
+    },
+  });
+
+  await prisma.message.upsert({
+    where: { id: 'message-welcome' },
+    update: {
+      name: 'Potential Client',
+      email: 'client@example.com',
+      phone: '+1 (555) 987-6543',
+      subject: 'Project Inquiry',
+      message: 'Hi John, I would love to discuss a new web application project with you.',
+      language: 'en',
+      status: MessageStatus.NEW,
+      receivedAt: new Date('2024-10-01T10:30:00Z'),
+      processedAt: null,
+    },
+    create: {
+      id: 'message-welcome',
+      name: 'Potential Client',
+      email: 'client@example.com',
+      phone: '+1 (555) 987-6543',
+      subject: 'Project Inquiry',
+      message: 'Hi John, I would love to discuss a new web application project with you.',
+      language: 'en',
+      status: MessageStatus.NEW,
+      receivedAt: new Date('2024-10-01T10:30:00Z'),
+      processedAt: null,
     },
   });
 

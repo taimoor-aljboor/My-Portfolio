@@ -1,29 +1,93 @@
-'use client';
-
-import { useTranslations } from 'next-intl';
+import type { ReactNode } from 'react';
 import Link from 'next/link';
-import { useLocale } from 'next-intl';
-import { Github, Linkedin, Mail } from 'lucide-react';
+import { getTranslations } from 'next-intl/server';
+import { Mail, Phone, MapPin, Globe, Github, Linkedin, Instagram, Youtube } from 'lucide-react';
+import type { Settings } from '@prisma/client';
+import type { LocalizedProfile } from '@/lib/queries/public';
 
-export function Footer() {
-  const t = useTranslations();
-  const locale = useLocale();
+type FooterProps = {
+  locale: string;
+  profile: LocalizedProfile | null;
+  settings: Settings | null;
+};
+
+type SocialEntry = {
+  href: string;
+  label: string;
+  icon: ReactNode;
+};
+
+const socialIconMap: Record<string, ReactNode> = {
+  linkedin: <Linkedin className="h-4 w-4" />,
+  github: <Github className="h-4 w-4" />,
+  instagram: <Instagram className="h-4 w-4" />,
+  youtube: <Youtube className="h-4 w-4" />,
+  website: <Globe className="h-4 w-4" />,
+};
+
+function extractSocialLinks(profile: LocalizedProfile | null, t: (key: string) => string): SocialEntry[] {
+  if (!profile?.socialLinks) return [];
+  const entries: SocialEntry[] = [];
+  const links = profile.socialLinks as Record<string, unknown>;
+
+  const append = (key: string, label?: string) => {
+    const value = links[key];
+    if (!value) return;
+    if (typeof value === 'string' && value.trim().length > 0) {
+      entries.push({
+        href: value,
+        label: label ?? key,
+        icon: socialIconMap[key] ?? <Globe className="h-4 w-4" />,
+      });
+    }
+  };
+
+  append('linkedin', 'LinkedIn');
+  append('github', 'GitHub');
+  append('instagram', 'Instagram');
+  append('youtube', 'YouTube');
+  append('website', t('footer.resources'));
+
+  const other = links['other'];
+  if (Array.isArray(other)) {
+    other.forEach((value) => {
+      if (typeof value === 'object' && value && 'url' in value) {
+        const entry = value as { url: string; label?: string };
+        if (entry.url) {
+          entries.push({
+            href: entry.url,
+            label: entry.label ?? t('nav.contact'),
+            icon: <Globe className="h-4 w-4" />,
+          });
+        }
+      }
+    });
+  }
+
+  return entries;
+}
+
+export async function Footer({ locale, profile, settings }: FooterProps) {
+  const t = await getTranslations();
   const currentYear = new Date().getFullYear();
+  const socialLinks = extractSocialLinks(profile, (key) => t(key));
+  const siteName = settings?.siteNameEn ?? profile?.fullName ?? 'Portfolio';
+
+  const navLinks = [
+    { href: '/', label: t('nav.home') },
+    { href: '/about', label: t('nav.about') },
+    { href: '/projects', label: t('nav.projects') },
+    { href: '/contact', label: t('nav.contact') },
+  ];
 
   return (
     <footer className="w-full border-t bg-background">
       <div className="container py-10">
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-4">
-          {/* Navigation Links */}
           <div className="space-y-3">
             <h3 className="text-base font-medium">{t('nav.navigation')}</h3>
             <ul className="space-y-2">
-              {[
-                { href: '/', label: t('nav.home') },
-                { href: '/about', label: t('nav.about') },
-                { href: '/projects', label: t('nav.projects') },
-                { href: '/contact', label: t('nav.contact') },
-              ].map((item) => (
+              {navLinks.map((item) => (
                 <li key={item.href}>
                   <Link
                     href={`/${locale}${item.href}`}
@@ -36,18 +100,21 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Resources */}
           <div className="space-y-3">
             <h3 className="text-base font-medium">{t('footer.resources')}</h3>
             <ul className="space-y-2">
-              <li>
-                <Link
-                  href={`/${locale}/cv`}
-                  className="text-sm text-muted-foreground hover:text-primary"
-                >
-                  {t('footer.downloadCV')}
-                </Link>
-              </li>
+              {profile?.cvPdfUrl ? (
+                <li>
+                  <a
+                    href={profile.cvPdfUrl}
+                    className="text-sm text-muted-foreground hover:text-primary"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {t('footer.downloadCV')}
+                  </a>
+                </li>
+              ) : null}
               <li>
                 <Link
                   href={`/${locale}/privacy`}
@@ -67,57 +134,64 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Contact Info */}
           <div className="space-y-3">
             <h3 className="text-base font-medium">{t('footer.contact')}</h3>
-            <ul className="space-y-2">
-              <li>
-                <a
-                  href="mailto:contact@example.com"
-                  className="text-sm text-muted-foreground hover:text-primary inline-flex items-center gap-2"
-                >
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              {profile?.email ? (
+                <li className="flex items-center gap-2">
                   <Mail className="h-4 w-4" />
-                  contact@example.com
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://github.com/yourusername"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-muted-foreground hover:text-primary inline-flex items-center gap-2"
-                >
-                  <Github className="h-4 w-4" />
-                  GitHub
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://linkedin.com/in/yourusername"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-muted-foreground hover:text-primary inline-flex items-center gap-2"
-                >
-                  <Linkedin className="h-4 w-4" />
-                  LinkedIn
-                </a>
-              </li>
+                  <a href={`mailto:${profile.email}`} className="hover:text-primary">
+                    {profile.email}
+                  </a>
+                </li>
+              ) : null}
+              {profile?.phone ? (
+                <li className="flex items-center gap-2">
+                  <Phone className="h-4 w-4" />
+                  <a href={`tel:${profile.phone}`} className="hover:text-primary">
+                    {profile.phone}
+                  </a>
+                </li>
+              ) : null}
+              {profile?.location ? (
+                <li className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  <span>{profile.location}</span>
+                </li>
+              ) : null}
             </ul>
           </div>
 
-          {/* Language & Theme */}
           <div className="space-y-3">
             <h3 className="text-base font-medium">{t('footer.preferences')}</h3>
-            <p className="text-sm text-muted-foreground">
-              {locale === 'en' ? 'عربي متوفر' : 'English Available'}
-            </p>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              {socialLinks.map((social) => (
+                <li key={social.href}>
+                  <a
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 hover:text-primary"
+                  >
+                    {social.icon}
+                    {social.label}
+                  </a>
+                </li>
+              ))}
+              {socialLinks.length === 0 ? (
+                <li>
+                  {locale === 'en'
+                    ? 'Follow updates on social media soon.'
+                    : 'تابعني على الشبكات الاجتماعية قريبًا.'}
+                </li>
+              ) : null}
+            </ul>
           </div>
         </div>
 
-        {/* Copyright */}
         <div className="mt-10 border-t pt-6 text-center">
           <p className="text-sm text-muted-foreground">
-            {t.rich('footer.copyright', { year: currentYear, name: 'Your Name' })}
+            {t.rich('footer.copyright', { year: currentYear, name: siteName })}
           </p>
         </div>
       </div>

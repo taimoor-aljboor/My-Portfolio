@@ -1,6 +1,16 @@
+import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/db';
 import { auth } from '@/lib/auth';
 import { courseSchema, type CourseFormValues } from '@/lib/validations/course';
+
+function revalidateCoursePaths() {
+  revalidatePath('/admin/courses');
+  revalidatePath('/admin');
+  revalidatePath('/en');
+  revalidatePath('/ar');
+  revalidatePath('/en/courses');
+  revalidatePath('/ar/courses');
+}
 
 export async function listCourses() {
   return prisma.course.findMany({ where: { deletedAt: null }, orderBy: { issuedOn: 'desc' } });
@@ -16,7 +26,7 @@ export async function createCourse(data: CourseFormValues) {
 
   const parsed = courseSchema.parse(data as any);
 
-  return prisma.course.create({
+  const course = await prisma.course.create({
     data: {
       titleEn: parsed.titleEn,
       titleAr: parsed.titleAr || null,
@@ -31,6 +41,10 @@ export async function createCourse(data: CourseFormValues) {
       updatedBy: session.user.email,
     },
   });
+
+  revalidateCoursePaths();
+
+  return course;
 }
 
 export async function updateCourse(id: string, data: Partial<CourseFormValues>) {
@@ -50,12 +64,23 @@ export async function updateCourse(id: string, data: Partial<CourseFormValues>) 
 
   safeData.updatedBy = session.user.email;
 
-  return prisma.course.update({ where: { id }, data: safeData });
+  const course = await prisma.course.update({ where: { id }, data: safeData });
+
+  revalidateCoursePaths();
+
+  return course;
 }
 
 export async function softDeleteCourse(id: string) {
   const session = await auth();
   if (!session?.user) throw new Error('Unauthorized');
 
-  return prisma.course.update({ where: { id }, data: { deletedAt: new Date(), updatedBy: session.user.email } });
+  const course = await prisma.course.update({
+    where: { id },
+    data: { deletedAt: new Date(), updatedBy: session.user.email },
+  });
+
+  revalidateCoursePaths();
+
+  return course;
 }
